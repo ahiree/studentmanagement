@@ -1,0 +1,162 @@
+{% extends 'student/base.html' %}
+
+{% block title %}Edit Student - Student Management System{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Edit Student: {{ student.first_name }} {{ student.last_name }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                    {{ form.first_name.errors }}
+                    <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" value="{{ form.first_name.value }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                    {{ form.last_name.errors }}
+                    <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" value="{{ form.last_name.value }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email.errors }}
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="form-control {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                    {{ form.date_of_birth.errors }}
+                    <input type="date" name="{{ form.date_of_birth.name }}" id="{{ form.date_of_birth.id_for_label }}" class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}" value="{{ form.date_of_birth.value|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                    {{ form.phone_number.errors }}
+                    <input type="text" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" value="{{ form.phone_number.value|default:'' }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                {{ form.address.errors }}
+                <textarea name="{{ form.address.name }}" id="{{ form.address.id_for_label }}" class="form-control {% if form.address.errors %}is-invalid{% endif %}" rows="3">{{ form.address.value|default:'' }}</textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'student_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Student</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">API Testing</h4>
+    </div>
+    <div class="card-body">
+        <p>You can test the API endpoints using the form below:</p>
+        <div class="mb-3">
+            <label for="apiEndpoint" class="form-label">Endpoint</label>
+            <select id="apiEndpoint" class="form-select">
+                <option value="/api/students/">GET /api/students/ (List all)</option>
+                <option value="/api/students/1/">GET /api/students/1/ (Get by ID)</option>
+                <option value="/api/students/" data-method="POST">POST /api/students/ (Create)</option>
+                <option value="/api/students/1/" data-method="PUT">PUT /api/students/1/ (Update)</option>
+                <option value="/api/students/1/" data-method="PATCH">PATCH /api/students/1/ (Partial Update)</option>
+                <option value="/api/students/1/" data-method="DELETE">DELETE /api/students/1/ (Delete)</option>
+            </select>
+        </div>
+        <div class="mb-3" id="requestBodyContainer" style="display: none;">
+            <label for="requestBody" class="form-label">Request Body (JSON)</label>
+            <textarea id="requestBody" class="form-control" rows="5"></textarea>
+        </div>
+        <button id="sendRequest" class="btn btn-primary">Send Request</button>
+        
+        <div class="mt-3">
+            <h5>Response:</h5>
+            <pre id="apiResponse" class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">Send a request to see the response</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiEndpointSelect = document.getElementById('apiEndpoint');
+        const requestBodyContainer = document.getElementById('requestBodyContainer');
+        const requestBodyTextarea = document.getElementById('requestBody');
+        const sendRequestButton = document.getElementById('sendRequest');
+        const apiResponsePre = document.getElementById('apiResponse');
+        
+        // Sample data for request body
+        const sampleData = {
+            first_name: "John",
+            last_name: "Doe",
+            email: "john.doe@example.com",
+            date_of_birth: "1990-01-01",
+            address: "123 Main St, Anytown, USA",
+            phone_number: "555-123-4567"
+        };
+        
+        // Show/hide request body based on selected endpoint
+        apiEndpointSelect.addEventListener('change', function() {
+            const selectedOption = apiEndpointSelect.options[apiEndpointSelect.selectedIndex];
+            const method = selectedOption.getAttribute('data-method') || 'GET';
+            
+            if (method === 'GET' || method === 'DELETE') {
+                requestBodyContainer.style.display = 'none';
+            } else {
+                requestBodyContainer.style.display = 'block';
+                requestBodyTextarea.value = JSON.stringify(sampleData, null, 2);
+            }
+        });
+        
+        // Send API request
+        sendRequestButton.addEventListener('click', async function() {
+            const selectedOption = apiEndpointSelect.options[apiEndpointSelect.selectedIndex];
+            const endpoint = selectedOption.value;
+            const method = selectedOption.getAttribute('data-method') || 'GET';
+            
+            apiResponsePre.textContent = 'Loading...';
+            
+            try {
+                // Get the JWT token from localStorage
+                const token = localStorage.getItem('access_token');
+                
+                if (!token) {
+                    apiResponsePre.textContent = 'Error: No authentication token found. Please login first.';
+                    return;
+                }
+                
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                };
+                
+                if (method !== 'GET' && method !== 'DELETE') {
+                    options.body = requestBodyTextarea.value;
+                }
+                
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+                
+                apiResponsePre.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                apiResponsePre.textContent = `Error: ${error.message}`;
+            }
+        });
+        
+        // Initialize
+        apiEndpointSelect.dispatchEvent(new Event('change'));
+    });
+</script>
+{% endblock %}
