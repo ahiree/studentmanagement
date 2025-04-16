@@ -22,9 +22,9 @@
 
 3. **Initialize application:**
    \`\`\`bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   python manage.py runserver
+   python manage.py migrate ,
+   python manage.py createsuperuser,
+   python manage.py runserver,
    \`\`\`
 
 ## Web Interface
