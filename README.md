@@ -48,7 +48,7 @@
 
 1. **Get JWT token:**
    \`\`\`bash
-   curl -X POST http://localhost:8000/api/token/ -d "username=your_username&password=your_password"
+   curl -X POST http://localhost:8000/api/token/ -d "username=rutik&password=Pass@123"
    \`\`\`
 
 2. **API Endpoints:**
